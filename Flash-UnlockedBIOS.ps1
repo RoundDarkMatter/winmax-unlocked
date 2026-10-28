@@ -1,5 +1,5 @@
 <#
-  WinMax BIOS Tool - unlocked BIOS 1.16 (3733 MT/s) for the GPD Win Max (2020)
+  WinMax Unlocked - unlocked BIOS 1.16 (3733 MT/s) for the GPD Win Max (2020)
 
   Flashes the BIOS region with Intel's Flash Programming Tool (FPTW64), keeping your own NVRAM (settings, boot
   entries, Windows key area), the ME firmware/data, the EC firmware and the flash descriptor untouched.
@@ -14,10 +14,10 @@
     6. Writes only the BIOS region, reads it back and verifies it. If the write does not verify it retries,
        then writes your original BIOS back. It never reboots by itself.
 
-  Usage (from an elevated PowerShell, or just double-click Install.bat):
-    .\WinMaxBIOS.ps1                       install the unlocked BIOS
-    .\WinMaxBIOS.ps1 -Restore              go back to GPD's official 1.16 code (keeps your NVRAM)
-    .\WinMaxBIOS.ps1 -KeepMemoryTraining   do not reset the saved memory training
+  Usage (from an elevated PowerShell, or just double-click Flash-UnlockedBIOS.bat):
+    .\Flash-UnlockedBIOS.ps1                       install the unlocked BIOS
+    .\Flash-UnlockedBIOS.ps1 -Restore              go back to GPD's official 1.16 code (keeps your NVRAM)
+    .\Flash-UnlockedBIOS.ps1 -KeepMemoryTraining   do not reset the saved memory training
 #>
 param(
     [string]$GpdPackage,                 # path to WINMAX.1.16.GPD.zip or .exe (auto-detected next to this script / in Downloads)
@@ -113,11 +113,11 @@ function Find-MemoryConfig([byte[]]$b) {
 # ---------------------------------------------------------------- 0. banner + administrator
 $id = [Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not $Test -and -not ([Security.Principal.WindowsPrincipal]$id).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host 'Please run this as Administrator (right-click Install.bat > Run as administrator).' -ForegroundColor Red
+    Write-Host 'Please run this as Administrator (right-click Flash-UnlockedBIOS.bat > Run as administrator).' -ForegroundColor Red
     exit 1
 }
 $mode = if ($Restore) { 'RESTORE official GPD BIOS 1.16 code' } else { 'INSTALL unlocked BIOS 1.16 (3733 MT/s)' }
-Say "WinMax BIOS Tool - $mode" 'Cyan'
+Say "WinMax Unlocked - $mode" 'Cyan'
 Say "Work folder: $WorkDir"
 
 # ---------------------------------------------------------------- 1. safety checks
