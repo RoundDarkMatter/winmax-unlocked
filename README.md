@@ -3,6 +3,21 @@
 An updated take on the **unlocked 3733 MHz BIOS for the original GPD Win Max (2020, i5-1035G7)**, with a guided
 installer that backs up your chip, keeps your own settings, verifies everything it writes, and can undo itself.
 
+## Performance
+
+GPD's official BIOS runs the soldered LPDDR4X at **3200 MT/s**, below the **3733 MT/s** the chips are rated for. This
+BIOS runs them at their rated speed:
+
+| | Official BIOS | This BIOS | Change |
+|---|---|---|---|
+| Memory speed | 3200 MT/s | **3733 MT/s** | **+16.7 %** |
+| Peak memory bandwidth (128-bit LPDDR4X) | 51.2 GB/s | **59.7 GB/s** | **+16.7 %** |
+| Access latency (tAA) | 17.50 ns | 17.14 ns | -2 % |
+
+The integrated Iris Plus G7 graphics share this memory and are usually limited by its bandwidth, so games and other
+GPU work benefit most. Real-world gains depend on the workload and are generally smaller than the 16.7 % bandwidth
+increase. CPU-only tasks change little.
+
 > ⚠️ **Flashing a modified BIOS can brick your device.** If the write fails *and* the machine is turned off, or if your
 > RAM cannot run at 3733 MT/s, the only recovery is an external SPI programmer. Use this at your own risk.
 
