@@ -1,6 +1,6 @@
 # GPD Win Max (2020) – Unlocked BIOS 1.16 with LPDDR4X-3733
 
-An updated take on the **unlocked 3733 MHz BIOS for the original GPD Win Max (2020, i5-1035G7)**, with a guided
+An updated take on the **unlocked 3733 MHz BIOS for the original GPD Win Max (2020, i5-1035G7)**, with **WinMax BIOS Tool**, a guided
 installer that backs up your chip, keeps your own settings, verifies everything it writes, and can undo itself.
 
 ## Performance
@@ -38,7 +38,7 @@ increase. CPU-only tasks change little.
 | Base firmware | GPD 1.16 build from **11/25/2020** | GPD 1.16 build from **10/19/2021** (GPD's latest, the Windows 11 / TPM release) |
 | Your settings (NVRAM) | Replaced with the mod author's own NVRAM (their settings, boot entries and saved RAM training) | **Your own NVRAM is kept**; only the saved RAM training is reset so it retrains at 3733 |
 | Flashing | Manual `fptw64` command | Guided installer: backup, checks, verified write, automatic retry/restore |
-| Undo | Reflash a backup by hand | `Restore-OfficialBIOS.bat` puts GPD's official code back (keeps your settings) |
+| Undo | Reflash a backup by hand | `Restore.bat` puts GPD's official code back (keeps your settings) |
 
 ## What the mod changes
 
@@ -68,7 +68,7 @@ Everything else is GPD's firmware unchanged. The ME firmware, EC firmware and fl
 
 1. Download this repository (Code → Download ZIP) and extract it.
 2. Put `WINMAX.1.16.GPD.zip` (GPD's official package) in the same folder (or leave it in your Downloads folder).
-3. Double-click **`Flash-UnlockedBIOS.bat`** and accept the administrator prompt.
+3. Double-click **`Install.bat`** and accept the administrator prompt.
 4. The installer will:
    - make a **full backup** of the flash chip (read twice and compared) in a `work-…` folder – copy it somewhere safe;
    - check that you are on GPD's official 1.16 and stop if not;
@@ -83,14 +83,18 @@ reboots by itself.
 
 ## Undo
 
-Double-click **`Restore-OfficialBIOS.bat`**. It writes GPD's official 1.16 code back (taken from GPD's package) and
-keeps your settings. The memory retrains at 3200 MT/s on the next boot.
+Double-click **`Restore.bat`**. It writes GPD's original 1.16 code back (from `WINMAX.1.16.OFFICIAL.rom`)
+and keeps your settings. The memory retrains at 3200 MT/s on the next boot.
+
+`WINMAX.1.16.OFFICIAL.rom` is GPD's original BIOS region with a clean factory NVRAM (no personal data). Flashing it
+directly with `FPTW64 -f WINMAX.1.16.OFFICIAL.rom -bios` also restores stock, but resets all BIOS settings and boot
+entries to factory defaults.
 
 ## If something goes wrong
 
 - **Unstable at 3733** (crashes, freezes): enter the BIOS and go to *Chipset → System Agent (SA) Configuration →
   Memory Configuration*. Set **Maximum Memory Frequency = 3200** *and* **Fast Boot = Disabled** for one boot (otherwise
-  the saved 3733 training is reused), then turn Fast Boot back on. Or run `Restore-OfficialBIOS.bat`.
+  the saved 3733 training is reused), then turn Fast Boot back on. Or run `Restore.bat`.
 - **Does not boot at all** (black screen every time): write the `backup_full.rom` the installer made with an SPI
   programmer (CH341A **with 3.3 V I/O** + SOIC-8 clip; the chip is a Winbond W25Q128, JEDEC ID EF4018). Disconnect the
   battery first.
@@ -104,9 +108,10 @@ Be careful with the unlocked menus: some options can make the machine unbootable
 | File | Purpose |
 |---|---|
 | `WINMAX.1.16.UNLOCKED.3733.rom` | BIOS region image (10 MB): GPD 1.16 (10/19/2021) + the three changes, GPD's factory NVRAM |
-| `Flash-UnlockedBIOS.ps1` | The installer |
-| `Flash-UnlockedBIOS.bat` | Starts the installer as administrator |
-| `Restore-OfficialBIOS.bat` | Starts the installer in restore mode |
+| `WINMAX.1.16.OFFICIAL.rom` | GPD's original, unmodified BIOS 1.16 (10/19/2021) region (10 MB) with GPD's clean factory NVRAM, byte-identical to the BIOS region inside GPD's `WINMAX.1.16.GPD.bin`. Used by the restore option; also a clean reference/recovery image |
+| `WinMaxBIOS.ps1` | The installer |
+| `Install.bat` | Starts the installer as administrator |
+| `Restore.bat` | Starts the installer in restore mode |
 | `SHA256SUMS.txt` | Checksums |
 
 ## Technical notes

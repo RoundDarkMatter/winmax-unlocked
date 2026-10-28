@@ -1,5 +1,5 @@
 <#
-  GPD Win Max (2020) - unlocked BIOS 1.16 (3733 MT/s) installer
+  WinMax BIOS Tool - unlocked BIOS 1.16 (3733 MT/s) for the GPD Win Max (2020)
 
   Flashes the BIOS region with Intel's Flash Programming Tool (FPTW64), keeping your own NVRAM (settings, boot
   entries, Windows key area), the ME firmware/data, the EC firmware and the flash descriptor untouched.
@@ -14,10 +14,10 @@
     6. Writes only the BIOS region, reads it back and verifies it. If the write does not verify it retries,
        then writes your original BIOS back. It never reboots by itself.
 
-  Usage (from an elevated PowerShell, or just double-click Flash-UnlockedBIOS.bat):
-    .\Flash-UnlockedBIOS.ps1                       install the unlocked BIOS
-    .\Flash-UnlockedBIOS.ps1 -Restore              go back to GPD's official 1.16 code (keeps your NVRAM)
-    .\Flash-UnlockedBIOS.ps1 -KeepMemoryTraining   do not reset the saved memory training
+  Usage (from an elevated PowerShell, or just double-click Install.bat):
+    .\WinMaxBIOS.ps1                       install the unlocked BIOS
+    .\WinMaxBIOS.ps1 -Restore              go back to GPD's official 1.16 code (keeps your NVRAM)
+    .\WinMaxBIOS.ps1 -KeepMemoryTraining   do not reset the saved memory training
 #>
 param(
     [string]$GpdPackage,                 # path to WINMAX.1.16.GPD.zip or .exe (auto-detected next to this script / in Downloads)
@@ -40,6 +40,8 @@ $IMAGE_NAME = 'WINMAX.1.16.UNLOCKED.3733.rom'
 $IMAGE_SHA = '1563AD91B14A1582EBA58C80EDA46F660DC60128D6F11C64A495D655EAE0BA98'
 $UNLOCKED_CODE_SHA = 'D1F3EB0ADC1D5B7A37FCB025CA7BDB73395CA7E20B61CEDC8C89D99F8646843A'
 $OFFICIAL_CODE_SHA = '29D626167740F469A3F70CC19C7ACCEDFA8F63C24DEBC838A8E89BA835729A96'   # GPD 1.16, 10/19/2021
+$OFFICIAL_NAME = 'WINMAX.1.16.OFFICIAL.rom'                                                # GPD's unmodified BIOS region, factory NVRAM
+$OFFICIAL_SHA = '3654056F2E5061B279D03C399F73D33CC16DF7F9B0BD524E9FFA6A5C80C5FCE2'
 $FPT_SHA = 'D3F0549AED4B1A07E3B68C17F300FDEC66897C856B3825A299CC7BD395F331CF'           # FPTW64 13.0.32.1478 from GPD's package
 $GPD_BIN_SHA = 'D3F3038D3DB72066'                                                         # prefix of WINMAX.1.16.GPD.bin sha256
 $NVRAM_FILE_GUID = 'A3B9F5CE6D477F499FDCE98143E0422C'    # CEF5B9A3-476D-497F-9FDC-E98143E0422C (AMI NVRAM store file)
@@ -111,11 +113,11 @@ function Find-MemoryConfig([byte[]]$b) {
 # ---------------------------------------------------------------- 0. banner + administrator
 $id = [Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not $Test -and -not ([Security.Principal.WindowsPrincipal]$id).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host 'Please run this as Administrator (right-click Flash-UnlockedBIOS.bat > Run as administrator).' -ForegroundColor Red
+    Write-Host 'Please run this as Administrator (right-click Install.bat > Run as administrator).' -ForegroundColor Red
     exit 1
 }
 $mode = if ($Restore) { 'RESTORE official GPD BIOS 1.16 code' } else { 'INSTALL unlocked BIOS 1.16 (3733 MT/s)' }
-Say "GPD Win Max (2020) BIOS tool - $mode" 'Cyan'
+Say "WinMax BIOS Tool - $mode" 'Cyan'
 Say "Work folder: $WorkDir"
 
 # ---------------------------------------------------------------- 1. safety checks
@@ -172,11 +174,17 @@ Say 'FPTW64 found and verified (Intel-signed).'
 
 # image to write
 if ($Restore) {
-    if (-not $GpdBin -or -not (Test-Path $GpdBin)) { Fail 'restore needs WINMAX.1.16.GPD.bin from GPD''s package' }
-    $gpdBinBytes = [IO.File]::ReadAllBytes($GpdBin)
-    if ($gpdBinBytes.Length -ne 0x1000000) { Fail 'WINMAX.1.16.GPD.bin has the wrong size' }
-    $newImage = New-Object byte[] $REGION
-    [Array]::Copy($gpdBinBytes, 0x600000, $newImage, 0, $REGION)
+    $officialPath = Join-Path $Here $OFFICIAL_NAME
+    if (Test-Path $officialPath) {
+        $newImage = [IO.File]::ReadAllBytes($officialPath)
+        if ($newImage.Length -ne $REGION -or (Sha $newImage 0 $REGION) -ne $OFFICIAL_SHA) { Fail "$OFFICIAL_NAME is damaged (hash mismatch) - download it again" }
+    } else {
+        if (-not $GpdBin -or -not (Test-Path $GpdBin)) { Fail "restore needs $OFFICIAL_NAME or WINMAX.1.16.GPD.bin from GPD's package" }
+        $gpdBinBytes = [IO.File]::ReadAllBytes($GpdBin)
+        if ($gpdBinBytes.Length -ne 0x1000000) { Fail 'WINMAX.1.16.GPD.bin has the wrong size' }
+        $newImage = New-Object byte[] $REGION
+        [Array]::Copy($gpdBinBytes, 0x600000, $newImage, 0, $REGION)
+    }
     $NEW_CODE_SHA = $OFFICIAL_CODE_SHA; $OLD_CODE_SHA = $UNLOCKED_CODE_SHA
 } else {
     $imgPath = Join-Path $Here $IMAGE_NAME
